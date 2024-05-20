@@ -1,33 +1,42 @@
-import { Box, Button, TextField } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  IconButton,
+  InputAdornment,
+} from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
-import ReactScrollToBottom from 'react-scroll-to-bottom';
-const socket = io("https://server-kpva.onrender.com");
+import { IoSend } from "react-icons/io5";
 
+const socket = io("https://server-kpva.onrender.com");
 
 export default function Home() {
   const [text, setText] = useState("");
   const [messages, setMessages] = useState([]);
-  const textRef=useRef();
+  const textRef = useRef();
+
 
   useEffect(() => {
-    socket.on("connect", () => {
-      console.log("connected");
-    });
-  }, []);
+    const handleUserJoined = (data) => {
+      console.log(data);
+      alert(data.message);
+    };
 
-  const onsubmit = () => {
-    if(text.length===0) return ;
-    socket.emit("someswar", text);
-    textRef.current.value='';
-    setMessages((prevMessages) => [...prevMessages, {"message":text,"side":"right","bgcol":"rgb(100 116 139)"}]);
-    setText('');
-  };
+    socket.on('userJoined', handleUserJoined);
+
+    // Cleanup the event listener on component unmount
+    return () => {
+      socket.off('userJoined', handleUserJoined);
+    };
+  }, []);
 
   useEffect(() => {
     const message = (data) => {
-    
-      setMessages((prevMessages) => [...prevMessages, {"message":data,"side":"left","bgcol":"whitesmoke"}]);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { message: data, side: "left", bgcol: "whitesmoke" },
+      ]);
     };
     socket.on("message", message);
 
@@ -36,29 +45,93 @@ export default function Home() {
     };
   }, []);
 
+  const onsubmit = () => {
+    if (text.length === 0) return;
+    socket.emit("someswar", text);
+    textRef.current.value = "";
+    textRef.current.focus();
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { message: text, side: "right", bgcol: "rgb(100 116 139)" },
+    ]);
+    setText("");
+  };
+
   return (
     <Box className="home">
-      <div className="flex" style={{ position: "fixed", bottom: "5%",left:"15%" }}>
-        <TextField 
-        type="text" 
-        onChange={(e) => setText(e.target.value)} 
-        inputRef={textRef}
-        placeholder="type message..."
+      <h6
+        className="text-center p-2 bg-purple-700 text-white"
+        style={{ clear: "both", fontSize: "1.2rem", fontFamily: "math" }}
+      >
+        Online Chat App
+      </h6>
+
+      <Box
+        sx={{
+          paddingBottom: "5%",
+          position: "fixed",
+          bottom: "0",
+          width: "100vw",
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <TextField
+          type="text"
+          onChange={(e) => setText(e.target.value)}
+          inputRef={textRef}
+          placeholder="Type a message..."
+          sx={{
+            maxWidth: { sm: "81vw", lg: "40vw", xs: "81vw", md: "70vw" },
+            minWidth: { sm: "81vw", lg: "40vw", xs: "81vw", md: "70vw" },
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "30px",
+            },
+          }}
+          InputProps={{
+            endAdornment: (
+              <IoSend
+                onClick={onsubmit}
+                style={{
+                  color: "white",
+                  marginRight: "5px",
+                  color: "blue",
+                  cursor: "pointer",
+                  fontSize: "1.5rem",
+                }}
+              />
+            ),
+          }}
         />
-        <Button variant="contained" onClick={onsubmit}>submit</Button>
-      </div>
-      
-      <Box className="p-10" sx={{width:"100vw",height:{lg:"60vh",xs:"80vh"},overflowY:'scroll'}}>
-      
-        {messages &&
-          messages?.map((data, index) => 
-            <ReactScrollToBottom style={{height:"40px"}}>
-          <div key={index} style={{float:data.side,clear:"both",marginBottom:"20px",fontSize:"1.2rem",backgroundColor:data.bgcol,borderRadius:"15px"}} >
-            <p className="p-2 ">{data.message}</p>
-            </div>
-            </ReactScrollToBottom>
-        )}
-        
+      </Box>
+
+      <Box
+        sx={{
+          width: "100vw",
+          height: { lg: "90vh", xs: "71vh" },
+          overflowY: "scroll",
+          padding: "10px",
+          marginTop: "50px",
+        }}
+      >
+        {messages.map((data, index) => (
+          <div
+            key={index}
+            style={{
+              float: data.side,
+              clear: "both",
+              marginBottom: "20px",
+              fontSize: "1.2rem",
+              backgroundColor: data.bgcol,
+              borderRadius: "15px",
+              padding: "10px",
+              maxWidth: "60%",
+              alignSelf: data.side === "right" ? "flex-end" : "flex-start",
+            }}
+          >
+            <p>{data.message}</p>
+          </div>
+        ))}
       </Box>
     </Box>
   );
