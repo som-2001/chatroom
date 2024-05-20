@@ -10,6 +10,7 @@ import io from "socket.io-client";
 import { IoSend } from "react-icons/io5";
 import ReactScrollToBottom from "react-scroll-to-bottom";
 
+
 const socket = io("https://server-kpva.onrender.com");
 
 export default function Home() {
@@ -25,7 +26,7 @@ export default function Home() {
 
     socket.on("userJoined", handleUserJoined);
 
-    // Cleanup the event listener on component unmount
+  
     return () => {
       socket.off("userJoined", handleUserJoined);
     };
@@ -45,6 +46,22 @@ export default function Home() {
     };
   }, []);
 
+  useEffect(()=>{
+
+    const Typing=()=>{
+ 
+      const header=document.getElementById('header');
+      header.innerHTML='User is Typing';
+    }
+
+    socket.on('typing',Typing);
+
+    return()=>{
+      socket.off('typing',Typing);
+     
+    }
+  },[]);
+
   const onsubmit = () => {
     if (text.length === 0) return;
     socket.emit("someswar", text);
@@ -57,11 +74,13 @@ export default function Home() {
     setText("");
   };
 
+
   return (
     <Box >
       <h6
+      id="header"
         className="text-center p-2 bg-purple-700 text-white"
-        style={{ clear: "both", fontSize: "1.2rem", fontFamily: "math" }}
+        style={{ clear: "both", fontSize: "1.2rem", fontFamily: "math",position:"fixed",width:"100vw",zIndex:"200" }}
       >
         Online Chat App
       </h6>
@@ -78,7 +97,7 @@ export default function Home() {
       >
         <TextField
           type="text"
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e)=>setText(e.target.value)}
           inputRef={textRef}
           placeholder="Type a message..."
           sx={{
@@ -105,7 +124,7 @@ export default function Home() {
         />
       </Box>
 
-    
+       
          <ReactScrollToBottom className="message-container">
           {messages.map((data, index) => (
             <Box
@@ -121,13 +140,14 @@ export default function Home() {
                 padding: "10px",
                 maxWidth: "60%",
                 alignSelf: data.side === "right" ? "flex-end" : "flex-start",
+             
               }}
             >
               {data.message}
             </Box>
           ))}
         </ReactScrollToBottom>
-
+       
     </Box>
   );
 }

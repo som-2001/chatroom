@@ -5,8 +5,12 @@
 ::-webkit-scrollbar{
     width: 2px;
 }
-.message-container .react-scroll-to-bottom--css-udiqg-1n7m0yu{
-  height: 480px;
+.message-container [class^="react-scroll-to-bottom--"]{
+  padding: 10px;  
+  height: 530px;
   overflow: scroll;
-  padding: 20px;
+  padding: 20px;  
+  background-color: transparent;
+  padding-top: 50px;
+
 }
