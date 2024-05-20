@@ -1,7 +1,9 @@
-import { Button, TextField } from "@mui/material";
+import { Box, Button, TextField } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
+import ReactScrollToBottom from 'react-scroll-to-bottom';
 const socket = io("https://server-kpva.onrender.com");
+
 
 export default function Home() {
   const [text, setText] = useState("");
@@ -15,9 +17,11 @@ export default function Home() {
   }, []);
 
   const onsubmit = () => {
+    if(text.length===0) return ;
     socket.emit("someswar", text);
     textRef.current.value='';
     setMessages((prevMessages) => [...prevMessages, {"message":text,"side":"right","bgcol":"rgb(100 116 139)"}]);
+    setText('');
   };
 
   useEffect(() => {
@@ -33,7 +37,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="home">
+    <Box className="home">
       <div className="flex" style={{ position: "fixed", bottom: "5%",left:"15%" }}>
         <TextField 
         type="text" 
@@ -44,14 +48,18 @@ export default function Home() {
         <Button variant="contained" onClick={onsubmit}>submit</Button>
       </div>
       
-      <div className="p-20">
+      <Box className="p-10" sx={{width:"100vw",height:{lg:"60vh",xs:"80vh"},overflowY:'scroll'}}>
+      
         {messages &&
           messages?.map((data, index) => 
+            <ReactScrollToBottom style={{height:"40px"}}>
           <div key={index} style={{float:data.side,clear:"both",marginBottom:"20px",fontSize:"1.2rem",backgroundColor:data.bgcol,borderRadius:"15px"}} >
             <p className="p-2 ">{data.message}</p>
             </div>
+            </ReactScrollToBottom>
         )}
-      </div>
-    </div>
+        
+      </Box>
+    </Box>
   );
 }
