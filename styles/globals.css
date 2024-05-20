@@ -5,6 +5,8 @@
 ::-webkit-scrollbar{
     width: 2px;
 }
-.{
-    font-family: math;
+.message-container .react-scroll-to-bottom--css-udiqg-1n7m0yu{
+  height: 480px;
+  overflow: scroll;
+  padding: 20px;
 }
