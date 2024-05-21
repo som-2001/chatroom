@@ -51,22 +51,17 @@ export default function Home() {
   useEffect(() => {
     const message = (data) => {
       const decodedData = decodeURIComponent(data.Url);
-      if (data.type === "image/jpeg") {
+      
         setMessages((prevMessages) => [
           ...prevMessages,
           {
             images: decodedData,
-            type: "jpeg",
+            type: data.type,
             side: "left",
             bgcol: "transparent",
           },
         ]);
-      } else if (data.type === "video/mp4") {
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { images: decodedData, type: "mp4", side: "left", bgcol: "transparent" },
-        ]);
-      }
+      
     };
     socket.on("image-file", message);
 
@@ -91,21 +86,17 @@ export default function Home() {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
+      var Url=URL.createObjectURL(file);
       reader.onloadend = () => {
         const base64String = reader.result.split(",")[1]; 
         const encodedData = encodeURIComponent(base64String);
         console.log(encodedData);
-        if (file.type === "image/jpeg") {
+
           setMessages((prevMessages) => [
             ...prevMessages,
-            { images: `data:image/jpeg;base64,${encodedData}`, type: "jpeg", side: "right", bgcol: "transparent" },
+            { images: Url, type: file.type, side: "right", bgcol: "transparent" },
           ]);
-        } else if (file.type === "video/mp4") {
-          setMessages((prevMessages) => [
-            ...prevMessages,
-            { images: `data:video/mp4;base64,${encodedData}`, type: "mp4", side: "right", bgcol: "transparent" },
-          ]);
-        }
+        
         socket.emit("image-file", { Url: encodedData, type: file.type });
       };
       reader.readAsDataURL(file);
@@ -206,16 +197,18 @@ export default function Home() {
             }}
           >
             {data?.images ? (
-              data.type === "jpeg" ? (
+               data.side==='left' ? (
                 <img
-                  src={`data:image/jpeg;base64,${data.images}`}
+                  src={`data:${data.type};base64,${data.images}`}
                   alt=""
                   style={{ width: "300px", height: "auto" }}
                 />
               ) : (
-                <video controls style={{ width: "300px", height: "auto" }}>
-                  <source src={`data:video/mp4;base64,${data.images}`} />
-                </video>
+                <img
+                src={data.images}
+                alt=""
+                style={{ width: "300px", height: "auto" }}
+              />
               )
             ) : (
               <Typography variant="body2">
