@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   TextField,
   IconButton,
   InputAdornment,
@@ -51,17 +50,16 @@ export default function Home() {
   useEffect(() => {
     const message = (data) => {
       const decodedData = decodeURIComponent(data.Url);
-      
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          {
-            images: decodedData,
-            type: data.type,
-            side: "left",
-            bgcol: "transparent",
-          },
-        ]);
-      
+
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          images: decodedData,
+          type: data.type,
+          side: "left",
+          bgcol: "transparent",
+        },
+      ]);
     };
     socket.on("image-file", message);
 
@@ -86,17 +84,22 @@ export default function Home() {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      var Url=URL.createObjectURL(file);
+      var Url = URL.createObjectURL(file);
       reader.onloadend = () => {
-        const base64String = reader.result.split(",")[1]; 
+        const base64String = reader.result.split(",")[1];
         const encodedData = encodeURIComponent(base64String);
         console.log(encodedData);
 
-          setMessages((prevMessages) => [
-            ...prevMessages,
-            { images: Url, type: file.type, side: "right", bgcol: "transparent" },
-          ]);
-        
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            images: Url,
+            type: file.type,
+            side: "right",
+            bgcol: "transparent",
+          },
+        ]);
+
         socket.emit("image-file", { Url: encodedData, type: file.type });
       };
       reader.readAsDataURL(file);
@@ -104,11 +107,11 @@ export default function Home() {
   };
 
   return (
-    <Box>
-      <h6
+    <Box sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+      <Typography
         id="header"
         className="text-center p-2 bg-purple-700 text-white"
-        style={{
+        sx={{
           clear: "both",
           fontSize: "1.2rem",
           fontFamily: "math",
@@ -118,68 +121,9 @@ export default function Home() {
         }}
       >
         Online Chat App
-      </h6>
+      </Typography>
 
-      <Box
-        sx={{
-          paddingBottom: "5%",
-          position: "fixed",
-          bottom: "0",
-          width: "100vw",
-          display: "flex",
-          justifyContent: "center",
-        }}
-      >
-        <TextField
-          type="text"
-          onChange={(e) => setText(e.target.value)}
-          inputRef={textRef}
-          placeholder="Type a message..."
-          sx={{
-            maxWidth: { sm: "81vw", lg: "40vw", xs: "81vw", md: "70vw" },
-            minWidth: { sm: "81vw", lg: "40vw", xs: "81vw", md: "70vw" },
-            "& .MuiOutlinedInput-root": {
-              borderRadius: "30px",
-            },
-          }}
-          InputProps={{
-            endAdornment: (
-              <>
-                <label component="label">
-                  <IoIosLink
-                    style={{
-                      color: "white",
-                      marginRight: "5px",
-                      color: "grey",
-                      cursor: "pointer",
-                      fontSize: "1.5rem",
-                    }}
-                  />
-                  <input
-                    type="file"
-                    accept="image/*,video/*"
-                    onChange={handleChange}
-                    style={{ display: "none" }}
-                    required
-                  />
-                </label>
-                <IoSend
-                  onClick={onsubmit}
-                  style={{
-                    color: "white",
-                    marginRight: "5px",
-                    color: "grey",
-                    cursor: "pointer",
-                    fontSize: "1.5rem",
-                  }}
-                />
-              </>
-            ),
-          }}
-        />
-      </Box>
-
-      <ReactScrollToBottom className="message-container">
+      <ReactScrollToBottom className="message-container" style={{ flex: 1, padding: "1rem", marginTop: "3rem", overflowY: "auto" }}>
         {messages.map((data, index) => (
           <Box
             key={index}
@@ -197,7 +141,7 @@ export default function Home() {
             }}
           >
             {data?.images ? (
-               data.side==='left' ? (
+              data.side === 'left' ? (
                 <img
                   src={`data:${data.type};base64,${data.images}`}
                   alt=""
@@ -205,22 +149,20 @@ export default function Home() {
                 />
               ) : (
                 <img
-                src={data.images}
-                alt=""
-                style={{ width: "300px", height: "auto" }}
-              />
+                  src={data.images}
+                  alt=""
+                  style={{ width: "300px", height: "auto" }}
+                />
               )
             ) : (
               <Typography variant="body2">
                 {data?.message?.length > 70 ? (
                   <Box>
-                    {
-                      <p style={{ wordBreak: "break-all", fontWeight: 100 }}>
-                        {data?.message?.slice(0, length)}...
-                      </p>
-                    }
+                    <p style={{ wordBreak: "break-all", fontWeight: 100 }}>
+                      {data?.message?.slice(0, length)}...
+                    </p>
                     <p
-                      onClick={(e) => {
+                      onClick={() => {
                         setLength(data?.message?.length);
                         setButton("");
                       }}
@@ -258,6 +200,64 @@ export default function Home() {
           </Box>
         ))}
       </ReactScrollToBottom>
+
+      <Box
+        sx={{
+          position: "fixed",
+          bottom: 0,
+          width: "100vw",
+          display: "flex",
+          justifyContent: "center",
+          backgroundColor: "white",
+          padding: "0.5rem",
+        }}
+      >
+        <TextField
+          type="text"
+          onChange={(e) => setText(e.target.value)}
+          inputRef={textRef}
+          placeholder="Type a message..."
+          sx={{
+            maxWidth: { sm: "81vw", lg: "40vw", xs: "81vw", md: "70vw" },
+            minWidth: { sm: "81vw", lg: "40vw", xs: "81vw", md: "70vw" },
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "30px",
+            },
+          }}
+          InputProps={{
+            endAdornment: (
+              <>
+                <label component="label">
+                  <IoIosLink
+                    style={{
+                      color: "grey",
+                      marginRight: "5px",
+                      cursor: "pointer",
+                      fontSize: "1.5rem",
+                    }}
+                  />
+                  <input
+                    type="file"
+                    accept="image/*,video/*"
+                    onChange={handleChange}
+                    style={{ display: "none" }}
+                    required
+                  />
+                </label>
+                <IoSend
+                  onClick={onsubmit}
+                  style={{
+                    color: "grey",
+                    marginRight: "5px",
+                    cursor: "pointer",
+                    fontSize: "1.5rem",
+                  }}
+                />
+              </>
+            ),
+          }}
+        />
+      </Box>
     </Box>
   );
 }
