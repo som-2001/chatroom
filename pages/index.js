@@ -56,7 +56,6 @@ export default function Home() {
           ...prevMessages,
           {
             images: decodedData,
-            type: data.type,
             side: "left",
             bgcol: "transparent",
           },
@@ -94,10 +93,10 @@ export default function Home() {
 
           setMessages((prevMessages) => [
             ...prevMessages,
-            { images: Url, type: file.type, side: "right", bgcol: "transparent" },
+            { images: Url, side: "right", bgcol: "transparent" },
           ]);
         
-        socket.emit("image-file", { Url: encodedData, type: file.type });
+        socket.emit("image-file", { Url: encodedData});
       };
       reader.readAsDataURL(file);
     }
@@ -199,7 +198,7 @@ export default function Home() {
             {data?.images ? (
                data.side==='left' ? (
                 <img
-                  src={`data:${data.type};base64,${data.images}`}
+                  src={data.images}
                   alt=""
                   style={{ width: "300px", height: "auto" }}
                 />
