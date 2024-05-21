@@ -18,8 +18,8 @@ export default function Home() {
   const [text, setText] = useState("");
   const [messages, setMessages] = useState([]);
   const textRef = useRef();
-  const [length,setLength]=useState(50);
-  const [button,setButton]=useState('Read more')
+  const [length, setLength] = useState(50);
+  const [button, setButton] = useState("Read more");
 
   useEffect(() => {
     const handleUserJoined = (data) => {
@@ -50,11 +50,12 @@ export default function Home() {
 
   useEffect(() => {
     const message = (data) => {
+      const decodedData = decodeURIComponent(data.Url);
       if (data.type === "image/jpeg") {
         setMessages((prevMessages) => [
           ...prevMessages,
           {
-            images: data.Url,
+            images: decodedData,
             type: "jpeg",
             side: "left",
             bgcol: "transparent",
@@ -63,7 +64,7 @@ export default function Home() {
       } else if (data.type === "video/mp4") {
         setMessages((prevMessages) => [
           ...prevMessages,
-          { images: data.Url, type: "mp4", side: "left", bgcol: "transparent" },
+          { images: decodedData, type: "mp4", side: "left", bgcol: "transparent" },
         ]);
       }
     };
@@ -89,22 +90,28 @@ export default function Home() {
   const handleChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const Url = URL.createObjectURL(file);
-
-      if (file.type === "image/jpeg") {
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { images: Url, type: "jpeg", side: "right", bgcol: "transparent" },
-        ]);
-      } else if (file.type === "video/mp4") {
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { images: Url, type: "mp4", side: "right", bgcol: "transparent" },
-        ]);
-      }
-      socket.emit("image-file", { Url: Url, type: file.type });
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result.split(",")[1]; 
+        const encodedData = encodeURIComponent(base64String);
+        console.log(encodedData);
+        if (file.type === "image/jpeg") {
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            { images: `data:image/jpeg;base64,${encodedData}`, type: "jpeg", side: "right", bgcol: "transparent" },
+          ]);
+        } else if (file.type === "video/mp4") {
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            { images: `data:video/mp4;base64,${encodedData}`, type: "mp4", side: "right", bgcol: "transparent" },
+          ]);
+        }
+        socket.emit("image-file", { Url: encodedData, type: file.type });
+      };
+      reader.readAsDataURL(file);
     }
   };
+
   return (
     <Box>
       <h6
@@ -159,7 +166,7 @@ export default function Home() {
                   />
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/*,video/*"
                     onChange={handleChange}
                     style={{ display: "none" }}
                     required
@@ -181,7 +188,7 @@ export default function Home() {
         />
       </Box>
 
-      <ReactScrollToBottom className="message-container" >
+      <ReactScrollToBottom className="message-container">
         {messages.map((data, index) => (
           <Box
             key={index}
@@ -201,23 +208,36 @@ export default function Home() {
             {data?.images ? (
               data.type === "jpeg" ? (
                 <img
-                  src={data.images}
+                  src={`data:image/jpeg;base64,${data.images}`}
                   alt=""
                   style={{ width: "300px", height: "auto" }}
                 />
               ) : (
                 <video controls style={{ width: "300px", height: "auto" }}>
-                  <source src={data.images}></source>
+                  <source src={`data:video/mp4;base64,${data.images}`} />
                 </video>
               )
             ) : (
               <Typography variant="body2">
                 {data?.message?.length > 70 ? (
                   <Box>
-                    {<p style={{wordBreak:"break-all",fontWeight:100}}>{data?.message?.slice(0, length)}...</p>}
-                    <p onClick={(e)=>{setLength(data?.message?.length);setButton('')}} className="text-blue-700">{button}</p>
+                    {
+                      <p style={{ wordBreak: "break-all", fontWeight: 100 }}>
+                        {data?.message?.slice(0, length)}...
+                      </p>
+                    }
+                    <p
+                      onClick={(e) => {
+                        setLength(data?.message?.length);
+                        setButton("");
+                      }}
+                      className="text-blue-700"
+                    >
+                      {button}
+                    </p>
                   </Box>
-                ) : data?.message?.startsWith("https://") || data?.message?.endsWith(".com") ? (
+                ) : data?.message?.startsWith("https://") ||
+                  data?.message?.endsWith(".com") ? (
                   <Box>
                     <a
                       href={data?.message}
@@ -227,7 +247,7 @@ export default function Home() {
                       style={{
                         textDecoration: "underline",
                         wordBreak: "break-all",
-                        fontWeight:100
+                        fontWeight: 100,
                       }}
                     >
                       {data?.message}
@@ -235,7 +255,9 @@ export default function Home() {
                   </Box>
                 ) : (
                   <Box>
-                    <p style={{ wordBreak: "break-all",fontWeight:100 }}>{data?.message}</p>
+                    <p style={{ wordBreak: "break-all", fontWeight: 100 }}>
+                      {data?.message}
+                    </p>
                   </Box>
                 )}
               </Typography>
