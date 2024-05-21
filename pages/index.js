@@ -11,8 +11,8 @@ import io from "socket.io-client";
 import { IoSend } from "react-icons/io5";
 import { IoIosLink } from "react-icons/io";
 import ReactScrollToBottom from "react-scroll-to-bottom";
-// https://server-kpva.onrender.com
-const socket = io("http://localhost:3001");
+
+const socket = io("https://server-kpva.onrender.com");
 
 export default function Home() {
   const [text, setText] = useState("");
@@ -181,7 +181,7 @@ export default function Home() {
         />
       </Box>
 
-      <ReactScrollToBottom className="message-container">
+      <ReactScrollToBottom className="message-container" >
         {messages.map((data, index) => (
           <Box
             key={index}
@@ -189,11 +189,11 @@ export default function Home() {
               height: "auto",
               float: data.side,
               clear: "both",
-              marginBottom: "20px",
+              marginBottom: "15px",
               fontSize: "1.2rem",
               backgroundColor: data.bgcol,
               borderRadius: "15px",
-              padding: "10px",
+              padding: "5px",
               maxWidth: "60%",
               alignSelf: data.side === "right" ? "flex-end" : "flex-start",
             }}
@@ -214,7 +214,7 @@ export default function Home() {
               <Typography variant="body2">
                 {data?.message?.length > 70 ? (
                   <Box>
-                    {<p style={{wordBreak:"break-all"}}>{data?.message?.slice(0, length)}...</p>}
+                    {<p style={{wordBreak:"break-all",fontWeight:100}}>{data?.message?.slice(0, length)}...</p>}
                     <p onClick={(e)=>{setLength(data?.message?.length);setButton('')}} className="text-blue-700">{button}</p>
                   </Box>
                 ) : data?.message?.startsWith("https://") || data?.message?.endsWith(".com") ? (
@@ -227,6 +227,7 @@ export default function Home() {
                       style={{
                         textDecoration: "underline",
                         wordBreak: "break-all",
+                        fontWeight:100
                       }}
                     >
                       {data?.message}
@@ -234,7 +235,7 @@ export default function Home() {
                   </Box>
                 ) : (
                   <Box>
-                    <p style={{ wordBreak: "break-all" }}>{data?.message}</p>
+                    <p style={{ wordBreak: "break-all",fontWeight:100 }}>{data?.message}</p>
                   </Box>
                 )}
               </Typography>
