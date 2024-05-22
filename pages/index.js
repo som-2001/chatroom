@@ -146,7 +146,7 @@ export default function Home() {
   };
 
   return (
-    <Box sx={{ height: "83vh", display: "flex", flexDirection: "column" }}>
+    <Box sx={{ height: "100vh", display: "flex", flexDirection: "column",position:"fixed",width:"100vw" }}>
       <Typography
         id="header"
         className="text-center p-2 bg-purple-700 text-white"
@@ -162,7 +162,7 @@ export default function Home() {
         Online Chat App
       </Typography>
 
-      {/* <ReactScrollToBottom className="message-container"> */}
+      <ReactScrollToBottom className="message-container">
         {messages.map((data, index) => (
           <Box
             key={index}
@@ -277,16 +277,16 @@ export default function Home() {
             )}
           </Box>
         ))}
-      {/* </ReactScrollToBottom> */}
+      </ReactScrollToBottom>
 
       <Box
         className="input-container"
         sx={{
           display: "flex",
           position: "fixed",
-          bottom: "0%",
+          bottom: "5%",
           alignItems: "center",
-          // padding: "10px",
+          padding: "10px",
           backgroundColor: "#fffff",
           width: "100vw",
           zIndex: 1000,
