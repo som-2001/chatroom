@@ -260,7 +260,7 @@ export default function Home() {
         sx={{
           display: "flex",
           position:"fixed",
-          bottom:"0%",
+          bottom:"5%",
           alignItems: "center",
           padding: "10px",
           backgroundColor: "#fffff",
