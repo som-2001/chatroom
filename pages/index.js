@@ -1,8 +1,4 @@
-import {
-  Box,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, TextField, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import { IoSend } from "react-icons/io5";
@@ -18,6 +14,8 @@ export default function Home() {
   const [length, setLength] = useState(50);
   const [button, setButton] = useState("Read more");
 
+  const hour=new Date().getHours();
+  const minute=new Date().getMinutes();
   useEffect(() => {
     const handleUserJoined = (data) => {
       console.log(data);
@@ -35,7 +33,7 @@ export default function Home() {
     const message = (data) => {
       setMessages((prevMessages) => [
         ...prevMessages,
-        { message: data, side: "left", bgcol: "whitesmoke" },
+        { message: data, side: "left", bgcol: "#5D4EAC" },
       ]);
     };
     socket.on("message", message);
@@ -95,7 +93,7 @@ export default function Home() {
     textRef.current.focus();
     setMessages((prevMessages) => [
       ...prevMessages,
-      { message: text, side: "right", bgcol: "rgb(184 127 225);" },
+      { message: text, side: "right", bgcol: "#8f8f8f" },
     ]);
     setText("");
   };
@@ -119,7 +117,7 @@ export default function Home() {
               bgcol: "transparent",
             },
           ]);
-        } else if (file.type.startsWith('video')) {
+        } else if (file.type.startsWith("video")) {
           setMessages((prevMessages) => [
             ...prevMessages,
             {
@@ -164,17 +162,7 @@ export default function Home() {
         Online Chat App
       </Typography>
 
-      <ReactScrollToBottom
-        className="message-container"
-        
-        style={{
-          flex: 1,
-          padding: "1rem",
-          marginTop: "3rem",
-          overflowY: "auto",
-          backgroundColor:"red"
-        }}
-      >
+      {/* <ReactScrollToBottom className="message-container"> */}
         {messages.map((data, index) => (
           <Box
             key={index}
@@ -182,16 +170,18 @@ export default function Home() {
               height: "auto",
               float: data.side,
               clear: "both",
-              marginBottom: "15px",
+              marginBottom: "5px",
               fontSize: "1.2rem",
               backgroundColor: data.bgcol,
-              borderRadius: "15px",
+              borderRadius: "10px",
               padding: "7px",
+              minWidth: "30%",
+              wordBreak:'break-all',
               justifyItem: data.side === "right" ? "flex-end" : "flex-start",
             }}
           >
             {data?.audio ? (
-              <audio controls >
+              <audio controls>
                 <source
                   src={`data:${data.type};base64,${data.audio}`}
                   type={data.type}
@@ -211,17 +201,30 @@ export default function Home() {
                 }}
               />
             ) : data?.video ? (
-              
-              <video controls style={{borderRadius:"25px",width:"300px",height:"auto", padding: "4px",
-              backgroundColor: "#343f46"}}>
-                <source src={`data:video/mp4;base64,${data.video}`}>
-                </source>
-                </video>
+              <video
+                controls
+                style={{
+                  borderRadius: "25px",
+                  width: "300px",
+                  height: "auto",
+                  padding: "4px",
+                  backgroundColor: "#343f46",
+                }}
+              >
+                <source src={`data:video/mp4;base64,${data.video}`}></source>
+              </video>
             ) : (
               <Typography variant="body2">
                 {data?.message?.length > 70 ? (
                   <Box>
-                    <p style={{ wordBreak: "break-all", fontWeight: 100 }}>
+                    <p
+                      style={{
+                        wordBreak: "break-all",
+                        fontWeight: 100,
+                        fontSize: "1.2rem",
+                      }}
+                      className=" text-white"
+                    >
                       {data?.message?.slice(0, length)}...
                     </p>
                     <p
@@ -229,9 +232,16 @@ export default function Home() {
                         setLength(data?.message?.length);
                         setButton("");
                       }}
-                      className="text-blue-700"
+                      className="text-blue-600"
                     >
-                      {button}
+                      Read more
+                      
+                    </p>
+                    <p
+                      className="text-sm text-white"
+                      style={{ float: "right", clear: "both" }}
+                    >
+                      {hour}:{minute}
                     </p>
                   </Box>
                 ) : data?.message?.startsWith("https://") ||
@@ -245,33 +255,51 @@ export default function Home() {
                     >
                       {data?.message}
                     </a>
+                    <p
+                      className="text-sm text-white"
+                      style={{ float: "right", clear: "both" }}
+                    >
+                      {hour}:{minute}
+                    </p>
                   </Box>
                 ) : (
-                  <span>{data?.message}</span>
+                  <Box className="">
+                    <p className="text-xl text-white">{data?.message}</p>
+                    <p
+                      className="text-sm text-white"
+                      style={{ float: "right", clear: "both" }}
+                    >
+                     {hour}:{minute}
+                    </p>
+                  </Box>
                 )}
               </Typography>
             )}
           </Box>
         ))}
-      </ReactScrollToBottom>
+      {/* </ReactScrollToBottom> */}
 
       <Box
         className="input-container"
         sx={{
           display: "flex",
-          position:"fixed",
-          bottom:"5%",
+          position: "fixed",
+          bottom: "5%",
           alignItems: "center",
           padding: "10px",
           backgroundColor: "#fffff",
-          width:"100vw",
-          zIndex:1000
+          width: "100vw",
+          zIndex: 1000,
         }}
       >
         <TextField
           id="outlined-basic"
-          label="Enter your message..."
+          label="Enter your message"
           variant="outlined"
+          placeholder="Type a message..."
+          sx={{
+            borderRadius:"20px"
+          }}
           fullWidth
           inputRef={textRef}
           onChange={(e) => setText(e.target.value)}
@@ -291,7 +319,10 @@ export default function Home() {
         >
           <IoSend />
         </button>
-        <label htmlFor="file-input" style={{ marginLeft: "10px", cursor: "pointer" }}>
+        <label
+          htmlFor="file-input"
+          style={{ marginLeft: "10px", cursor: "pointer" }}
+        >
           <IoIosLink size={24} />
         </label>
         <input

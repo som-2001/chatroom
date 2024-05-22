@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+*{
+  font-family: "math";
+}
 ::-webkit-scrollbar{
     width: 2px;
 }
@@ -9,7 +12,7 @@
 .message-container [class^="react-scroll-to-bottom--"]{
   padding: 10px;  
   height: fit-content;
-  max-height: 580px;
+  max-height: 620px;
   overflow: scroll;
   padding: 20px;  
   background-color: transparent;
