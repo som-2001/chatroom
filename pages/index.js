@@ -146,7 +146,7 @@ export default function Home() {
   };
 
   return (
-    <Box sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+    <Box sx={{ height: "83vh", display: "flex", flexDirection: "column" }}>
       <Typography
         id="header"
         className="text-center p-2 bg-purple-700 text-white"
@@ -284,9 +284,9 @@ export default function Home() {
         sx={{
           display: "flex",
           position: "fixed",
-          bottom: "5%",
+          bottom: "0%",
           alignItems: "center",
-          padding: "10px",
+          // padding: "10px",
           backgroundColor: "#fffff",
           width: "100vw",
           zIndex: 1000,
