@@ -166,11 +166,13 @@ export default function Home() {
 
       <ReactScrollToBottom
         className="message-container"
+        
         style={{
           flex: 1,
           padding: "1rem",
           marginTop: "3rem",
           overflowY: "auto",
+          backgroundColor:"red"
         }}
       >
         {messages.map((data, index) => (
@@ -257,10 +259,13 @@ export default function Home() {
         className="input-container"
         sx={{
           display: "flex",
+          position:"fixed",
+          bottom:"0%",
           alignItems: "center",
           padding: "10px",
           backgroundColor: "#fffff",
-          marginTop: '13px;'
+          width:"100vw",
+          zIndex:1000
         }}
       >
         <TextField

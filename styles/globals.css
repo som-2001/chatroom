@@ -8,7 +8,8 @@
 
 .message-container [class^="react-scroll-to-bottom--"]{
   padding: 10px;  
-  height: 670px;
+  height: fit-content;
+  max-height: 580px;
   overflow: scroll;
   padding: 20px;  
   background-color: transparent;
