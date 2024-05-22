@@ -1,8 +1,6 @@
 import {
   Box,
   TextField,
-  IconButton,
-  InputAdornment,
   Typography,
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
@@ -51,15 +49,37 @@ export default function Home() {
     const message = (data) => {
       const decodedData = decodeURIComponent(data.Url);
 
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        {
-          images: decodedData,
-          type: data.type,
-          side: "left",
-          bgcol: "transparent",
-        },
-      ]);
+      if (data.type.startsWith("audio")) {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            audio: decodedData,
+            type: data.type,
+            side: "left",
+            bgcol: "transparent",
+          },
+        ]);
+      } else if (data.type.startsWith("video")) {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            video: decodedData,
+            type: data.type,
+            side: "left",
+            bgcol: "transparent",
+          },
+        ]);
+      } else {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            images: decodedData,
+            type: data.type,
+            side: "left",
+            bgcol: "transparent",
+          },
+        ]);
+      }
     };
     socket.on("image-file", message);
 
@@ -75,30 +95,51 @@ export default function Home() {
     textRef.current.focus();
     setMessages((prevMessages) => [
       ...prevMessages,
-      { message: text, side: "right", bgcol: "rgb(176 183 193)" },
+      { message: text, side: "right", bgcol: "rgb(184 127 225);" },
     ]);
     setText("");
   };
 
   const handleChange = (e) => {
     const file = e.target.files[0];
+
     if (file) {
       const reader = new FileReader();
-      var Url = URL.createObjectURL(file);
       reader.onloadend = () => {
         const base64String = reader.result.split(",")[1];
         const encodedData = encodeURIComponent(base64String);
-        console.log(encodedData);
 
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          {
-            images: Url,
-            type: file.type,
-            side: "right",
-            bgcol: "transparent",
-          },
-        ]);
+        if (file.type.startsWith("audio")) {
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            {
+              audio: base64String,
+              type: file.type,
+              side: "right",
+              bgcol: "transparent",
+            },
+          ]);
+        } else if (file.type.startsWith('video')) {
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            {
+              video: base64String,
+              type: file.type,
+              side: "right",
+              bgcol: "transparent",
+            },
+          ]);
+        } else {
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            {
+              images: base64String,
+              type: file.type,
+              side: "right",
+              bgcol: "transparent",
+            },
+          ]);
+        }
 
         socket.emit("image-file", { Url: encodedData, type: file.type });
       };
@@ -123,7 +164,15 @@ export default function Home() {
         Online Chat App
       </Typography>
 
-      <ReactScrollToBottom className="message-container" style={{ flex: 1, padding: "1rem", marginTop: "3rem", overflowY: "auto" }}>
+      <ReactScrollToBottom
+        className="message-container"
+        style={{
+          flex: 1,
+          padding: "1rem",
+          marginTop: "3rem",
+          overflowY: "auto",
+        }}
+      >
         {messages.map((data, index) => (
           <Box
             key={index}
@@ -135,25 +184,37 @@ export default function Home() {
               fontSize: "1.2rem",
               backgroundColor: data.bgcol,
               borderRadius: "15px",
-              padding: "5px",
-              maxWidth: "60%",
-              alignSelf: data.side === "right" ? "flex-end" : "flex-start",
+              padding: "7px",
+              justifyItem: data.side === "right" ? "flex-end" : "flex-start",
             }}
           >
-            {data?.images ? (
-              data.side === 'left' ? (
-                <img
-                  src={`data:${data.type};base64,${data.images}`}
-                  alt=""
-                  style={{ width: "300px", height: "auto" }}
+            {data?.audio ? (
+              <audio controls >
+                <source
+                  src={`data:${data.type};base64,${data.audio}`}
+                  type={data.type}
                 />
-              ) : (
-                <img
-                  src={data.images}
-                  alt=""
-                  style={{ width: "300px", height: "auto" }}
-                />
-              )
+                Your browser does not support the audio tag.
+              </audio>
+            ) : data?.images ? (
+              <img
+                src={`data:${data.type};base64,${data.images}`}
+                alt=""
+                style={{
+                  width: "300px",
+                  height: "auto",
+                  borderRadius: "15px",
+                  padding: "4px",
+                  backgroundColor: "#343f46",
+                }}
+              />
+            ) : data?.video ? (
+              
+              <video controls style={{borderRadius:"25px",width:"300px",height:"auto", padding: "4px",
+              backgroundColor: "#343f46"}}>
+                <source src={`data:video/mp4;base64,${data.video}`}>
+                </source>
+                </video>
             ) : (
               <Typography variant="body2">
                 {data?.message?.length > 70 ? (
@@ -179,21 +240,12 @@ export default function Home() {
                       target="_blank"
                       rel="noreferrer"
                       className="cursor-pointer text-blue-700"
-                      style={{
-                        textDecoration: "underline",
-                        wordBreak: "break-all",
-                        fontWeight: 100,
-                      }}
                     >
                       {data?.message}
                     </a>
                   </Box>
                 ) : (
-                  <Box>
-                    <p style={{ wordBreak: "break-all", fontWeight: 100 }}>
-                      {data?.message}
-                    </p>
-                  </Box>
+                  <span>{data?.message}</span>
                 )}
               </Typography>
             )}
@@ -202,60 +254,46 @@ export default function Home() {
       </ReactScrollToBottom>
 
       <Box
+        className="input-container"
         sx={{
-          position: "fixed",
-          bottom: 0,
-          width: "100vw",
           display: "flex",
-          justifyContent: "center",
-          backgroundColor: "white",
-          padding: "0.5rem",
+          alignItems: "center",
+          padding: "10px",
+          backgroundColor: "#fffff",
+          marginTop: '13px;'
         }}
       >
         <TextField
-          type="text"
-          onChange={(e) => setText(e.target.value)}
+          id="outlined-basic"
+          label="Enter your message..."
+          variant="outlined"
+          fullWidth
           inputRef={textRef}
-          placeholder="Type a message..."
-          sx={{
-            maxWidth: { sm: "81vw", lg: "40vw", xs: "81vw", md: "70vw" },
-            minWidth: { sm: "81vw", lg: "40vw", xs: "81vw", md: "70vw" },
-            "& .MuiOutlinedInput-root": {
-              borderRadius: "30px",
-            },
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && onsubmit()}
+        />
+        <button
+          onClick={onsubmit}
+          style={{
+            marginLeft: "10px",
+            padding: "10px",
+            borderRadius: "50%",
+            backgroundColor: "#007bff",
+            color: "#fff",
+            border: "none",
+            cursor: "pointer",
           }}
-          InputProps={{
-            endAdornment: (
-              <>
-                <label component="label">
-                  <IoIosLink
-                    style={{
-                      color: "grey",
-                      marginRight: "5px",
-                      cursor: "pointer",
-                      fontSize: "1.5rem",
-                    }}
-                  />
-                  <input
-                    type="file"
-                    accept="image/*,video/*"
-                    onChange={handleChange}
-                    style={{ display: "none" }}
-                    required
-                  />
-                </label>
-                <IoSend
-                  onClick={onsubmit}
-                  style={{
-                    color: "grey",
-                    marginRight: "5px",
-                    cursor: "pointer",
-                    fontSize: "1.5rem",
-                  }}
-                />
-              </>
-            ),
-          }}
+        >
+          <IoSend />
+        </button>
+        <label htmlFor="file-input" style={{ marginLeft: "10px", cursor: "pointer" }}>
+          <IoIosLink size={24} />
+        </label>
+        <input
+          id="file-input"
+          type="file"
+          style={{ display: "none" }}
+          onChange={handleChange}
         />
       </Box>
     </Box>
