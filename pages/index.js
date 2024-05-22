@@ -13,13 +13,14 @@ export default function Home() {
   const textRef = useRef();
   const [length, setLength] = useState(50);
   const [button, setButton] = useState("Read more");
+  const [copy, setCopy] = useState('');
 
-  const hour=new Date().getHours();
-  const minute=new Date().getMinutes();
+  const hour = new Date().getHours();
+  const minute = new Date().getMinutes();
+
   useEffect(() => {
     const handleUserJoined = (data) => {
       console.log(data);
-      // alert(data.message);
     };
 
     socket.on("userJoined", handleUserJoined);
@@ -31,9 +32,10 @@ export default function Home() {
 
   useEffect(() => {
     const message = (data) => {
+      console.log(data);
       setMessages((prevMessages) => [
         ...prevMessages,
-        { message: data, side: "left", bgcol: "#5D4EAC" },
+        { message: data.text, side: "left", bgcol: "#5D4EAC", copyMessage: data.copy },
       ]);
     };
     socket.on("message", message);
@@ -88,14 +90,16 @@ export default function Home() {
 
   const onsubmit = () => {
     if (text.length === 0) return;
-    socket.emit("someswar", text);
+    socket.emit("someswar", { text, copy });
+    console.log(copy);
     textRef.current.value = "";
     textRef.current.focus();
     setMessages((prevMessages) => [
       ...prevMessages,
-      { message: text, side: "right", bgcol: "#8f8f8f" },
+      { message: text, side: "right", bgcol: "#8f8f8f", copyMessage: copy },
     ]);
     setText("");
+    setCopy('');
   };
 
   const handleChange = (e) => {
@@ -145,8 +149,13 @@ export default function Home() {
     }
   };
 
+  const handleDoubleClick = (message) => {
+    console.log(message)
+    setCopy(message);
+  };
+
   return (
-    <Box sx={{ height: "100vh", display: "flex", flexDirection: "column",position:"fixed",width:"100vw" }}>
+    <Box sx={{ height: "100vh", display: "flex", flexDirection: "column", position: "fixed", width: "100vw" }}>
       <Typography
         id="header"
         className="text-center p-2 bg-purple-700 text-white"
@@ -176,9 +185,10 @@ export default function Home() {
               borderRadius: "10px",
               padding: "7px",
               minWidth: "30%",
-              wordBreak:'break-all',
+              wordBreak: 'break-all',
               justifyItem: data.side === "right" ? "flex-end" : "flex-start",
             }}
+            onClick={() => handleDoubleClick(data.message)}
           >
             {data?.audio ? (
               <audio controls>
@@ -215,15 +225,24 @@ export default function Home() {
               </video>
             ) : (
               <Typography variant="body2">
+                <p
+                      style={{
+                        wordBreak: "break-all",
+                        fontWeight: 100,
+                        fontSize: "0.9rem",
+                      }}>
+                      {data?.copyMessage?.slice(0,50)}
+                    </p>
                 {data?.message?.length > 70 ? (
                   <Box>
+                    
                     <p
                       style={{
                         wordBreak: "break-all",
                         fontWeight: 100,
                         fontSize: "1.2rem",
                       }}
-                      className=" text-white"
+                      className="text-white"
                     >
                       {data?.message?.slice(0, length)}...
                     </p>
@@ -235,7 +254,6 @@ export default function Home() {
                       className="text-blue-600"
                     >
                       Read more
-                      
                     </p>
                     <p
                       className="text-sm text-white"
@@ -263,13 +281,13 @@ export default function Home() {
                     </p>
                   </Box>
                 ) : (
-                  <Box className="">
+                  <Box>
                     <p className="text-xl text-white">{data?.message}</p>
                     <p
                       className="text-sm text-white"
                       style={{ float: "right", clear: "both" }}
                     >
-                     {hour}:{minute}
+                      {hour}:{minute}
                     </p>
                   </Box>
                 )}
@@ -284,12 +302,13 @@ export default function Home() {
         sx={{
           display: "flex",
           position: "fixed",
-          bottom: "5%",
+          bottom: "0%",
           alignItems: "center",
           padding: "10px",
           backgroundColor: "#fffff",
           width: "100vw",
           zIndex: 1000,
+          marginTop: "10px"
         }}
       >
         <TextField
@@ -298,7 +317,7 @@ export default function Home() {
           variant="outlined"
           placeholder="Type a message..."
           sx={{
-            borderRadius:"20px"
+            borderRadius: "20px"
           }}
           fullWidth
           inputRef={textRef}
