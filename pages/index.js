@@ -158,17 +158,17 @@ export default function Home() {
     <Box sx={{ height: "100vh", display: "flex", flexDirection: "column", position: "fixed", width: "100vw" }}>
       <Typography
         id="header"
-        className="text-center p-2 bg-purple-700 text-white"
+        className="text-center bg-purple-700 text-white"
         sx={{
           clear: "both",
-          fontSize: "1.2rem",
+          fontSize: "1.7rem",
           fontFamily: "math",
           position: "fixed",
           width: "100vw",
           zIndex: "200",
         }}
       >
-        Online Chat App
+        {new Date().getHours()}:{new Date().getMinutes()}
       </Typography>
 
       <ReactScrollToBottom className="message-container">
