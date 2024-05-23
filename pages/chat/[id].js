@@ -6,9 +6,10 @@ import { IoIosLink } from "react-icons/io";
 import ReactScrollToBottom from "react-scroll-to-bottom";
 import { toast, Toaster } from "sonner";
 import { RxCrossCircled } from "react-icons/rx";
+import { Navbar } from "@/components/Navbar";
 // https://server-kpva.onrender.com
 
-const socket = io("https://server-kpva.onrender.com");
+const socket = io("http://localhost:3001");
 
 export default function Chat() {
   const [text, setText] = useState("");
@@ -23,8 +24,10 @@ export default function Chat() {
   const [copyName, setCopyName] = useState("");
   const hour = new Date().getHours();
   const minute = new Date().getMinutes();
+  const [member, setMember] = useState([]);
 
   useEffect(() => {
+    
     const Storedname = localStorage?.getItem("name");
     const StoredRoomname = localStorage?.getItem("room");
     const Storedcode = localStorage?.getItem("code");
@@ -34,7 +37,26 @@ export default function Chat() {
     setCode(localStorage?.getItem("code"));
 
     socket.emit("join_room", { Storedname, StoredRoomname, Storedcode });
+   
+
   }, []);
+
+  useEffect(()=>{
+     socket.emit('total_member',{name,room,code});
+  },[code]);
+
+  useEffect(()=>{
+    
+    const total_member = (data) => {
+        console.log(data.members);
+        setMember(data.members);
+      };
+    socket.on("total_member", total_member);
+
+    return()=>{
+        socket.off("total_member", total_member);
+    }
+  },[]);
 
   useEffect(() => {
     const userJoined = (data) => {
@@ -43,6 +65,20 @@ export default function Chat() {
     socket.on("userJoined", userJoined);
     return () => {
       socket.off("userJoined", userJoined);
+    };
+  }, []);
+
+  useEffect(() => {
+
+    const userleave = (data) => {
+      toast.info(`${data.user} has left the room`);
+      setMember(data.members);
+    };
+    
+    socket.on("left_room", userleave);
+   
+    return () => {
+      socket.off("left_room", userleave);
     };
   }, []);
 
@@ -222,22 +258,8 @@ export default function Chat() {
         width: "100vw",
       }}
     >
-      <Box
-        id="header"
-        className="text-center bg-purple-700 text-white"
-        sx={{
-          clear: "both",
-          fontFamily: "math",
-          position: "fixed",
-          width: "100vw",
-          zIndex: "200",
-        }}
-      >
-        <p className="text-xl">{room.toUpperCase()}</p>
-        <p>
-          {room}-{code}
-        </p>
-      </Box>
+      {<Navbar room={room.toUpperCase()} code={code} member={member} />}
+
       <Toaster position="top-center" autoClose={3000} />
       <ReactScrollToBottom className="message-container">
         {messages.map((data, index) => (
@@ -407,7 +429,7 @@ export default function Chat() {
           placeholder="Type a message..."
           fullWidth
           sx={{
-            "& .css-md26zr-MuiInputBase-root-MuiOutlinedInput-root": {
+            "& [class^= .MuiInputBase-root-MuiOutlinedInput-root]": {
               borderRadius: "30px",
             },
           }}
@@ -419,8 +441,16 @@ export default function Chat() {
               <>
                 {copy && (
                   <>
-                    <RxCrossCircled onClick={(e) =>{ setCopy("");setCopyName("");textRef.current.focus()}} />
-                    <p style={{width:"133px",cursor:"pointer"}}><b>{copy.slice(0, 10)}:</b>  </p>
+                    <RxCrossCircled
+                      onClick={(e) => {
+                        setCopy("");
+                        setCopyName("");
+                        textRef.current.focus();
+                      }}
+                    />
+                    <p style={{ width: "133px", cursor: "pointer" }}>
+                      <b>{copy.slice(0, 10)}:</b>{" "}
+                    </p>
                   </>
                 )}
               </>
