@@ -9,7 +9,7 @@ import { RxCrossCircled } from "react-icons/rx";
 import { Navbar } from "@/components/Navbar";
 // https://server-kpva.onrender.com
 
-const socket = io("http://localhost:3001");
+const socket = io("https://server-kpva.onrender.com");
 
 export default function Chat() {
   const [text, setText] = useState("");
