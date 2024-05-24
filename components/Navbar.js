@@ -32,7 +32,7 @@ export const Navbar=(props)=> {
       <Typography variant="h6" sx={{ my: 1 }}>
         {props.room}
       </Typography>
-      <Typography variant="p" sx={{ marginBottom: 2 }}>
+      <Typography variant="p" sx={{ marginBottom: 2,wordBreak:"break-all" }}>
         {props.room.toLowerCase()}-{props.code}
       </Typography>
       <Divider />

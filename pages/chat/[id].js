@@ -350,7 +350,7 @@ export default function Chat() {
           >
             {data?.audio ? (
               <>
-                <p>{data.name}-{index}</p>
+                <p>{data.name}</p>
                 <audio controls>
                   <source
                     src={`data:${data.type};base64,${data.audio}`}
@@ -619,12 +619,13 @@ export default function Chat() {
           id="outlined-basic"
           label="Enter your message"
           variant="outlined"
-          placeholder="Type a message..."
+          placeholder={recording ? "Recording...": "Type a message..."}
           fullWidth
           sx={{
             borderRadius: "30px",
           }}
           inputRef={textRef}
+          disabled={recording}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && onsubmit()}
           InputProps={{
