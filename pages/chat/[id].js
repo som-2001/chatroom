@@ -8,8 +8,8 @@ import { toast, Toaster } from "sonner";
 import { RxCrossCircled } from "react-icons/rx";
 import { CiMicrophoneOn } from "react-icons/ci";
 import { Navbar } from "@/components/Navbar";
+import { MdOutlineAutoDelete } from "react-icons/md";
 // https://server-kpva.onrender.com
-
 const socket = io("https://server-kpva.onrender.com");
 
 export default function Chat() {
@@ -27,11 +27,9 @@ export default function Chat() {
   const minute = new Date().getMinutes();
   const [member, setMember] = useState([]);
   const [recording, setRecording] = useState(false);
-  const [audioUrl, setAudioUrl] = useState("");
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
- 
   useEffect(() => {
     const Storedname = localStorage?.getItem("name");
     const StoredRoomname = localStorage?.getItem("room");
@@ -60,7 +58,6 @@ export default function Chat() {
     };
   }, []);
 
-
   const startRecording = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorderRef.current = new MediaRecorder(stream);
@@ -71,34 +68,33 @@ export default function Chat() {
 
     mediaRecorderRef.current.onstop = () => {
       const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" });
-      const audioUrl = URL.createObjectURL(audioBlob);
 
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64String = reader.result.split(",")[1];
         const encodedData = encodeURIComponent(base64String);
 
-          setMessages((prevMessages) => [
-            ...prevMessages,
-            {
-              audio: base64String,
-              type: "audio/wav",
-              side: "right",
-              bgcol: "transparent",
-              name: name,
-              room: room,
-              code: code,
-            },
-          ]);
-          socket.emit("image-file", {
-            Url: encodedData,
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            audio: base64String,
             type: "audio/wav",
-            room,
-            code,
-            name,
-          });
-        };
-       reader.readAsDataURL(audioBlob);
+            side: "right",
+            bgcol: "transparent",
+            name: name,
+            room: room,
+            code: code,
+          },
+        ]);
+        socket.emit("image-file", {
+          Url: encodedData,
+          type: "audio/wav",
+          room,
+          code,
+          name,
+        });
+      };
+      reader.readAsDataURL(audioBlob);
       audioChunksRef.current = [];
     };
 
@@ -109,9 +105,7 @@ export default function Chat() {
   const stopRecording = () => {
     mediaRecorderRef.current.stop();
     setRecording(false);
-   
   };
-
 
   useEffect(() => {
     const userJoined = (data) => {
@@ -302,6 +296,25 @@ export default function Chat() {
     textRef.current.focus();
   };
 
+  
+  console.log(messages);
+
+  useEffect(() => {
+    const deleteMessage = (data) => {
+      setCopy("");
+      setCopyName("");
+
+      setMessages((prevMessages) =>
+        prevMessages.filter((_, index) => index !== data.index)
+      );
+    };
+    socket.on("deleteMessage", deleteMessage);
+    return () => {
+      socket.off("deleteMessage", deleteMessage);
+    };
+  }, []);
+
+
   return (
     <Box
       sx={{
@@ -337,7 +350,7 @@ export default function Chat() {
           >
             {data?.audio ? (
               <>
-                <p>{data.name}</p>
+                <p>{data.name}-{index}</p>
                 <audio controls>
                   <source
                     src={`data:${data.type};base64,${data.audio}`}
@@ -345,6 +358,29 @@ export default function Chat() {
                   />
                   Your browser does not support the audio tag.
                 </audio>
+                {data?.side === "right" ? (
+                  <span
+                    onClick={(e) => {
+                      socket.emit("deleteMessage", {
+                        message: data?.message,
+                        room: room,
+                        code: code,
+                        name: name,
+                        index: index,
+                      });
+                      alert(index)
+                    }}
+                  >
+                    {" "}
+                    <MdOutlineAutoDelete
+                      onClick={(e) => {
+                        setCopy("");
+                        setCopyName("");
+                        textRef.current.focus();
+                      }}
+                    />
+                  </span>
+                ) : null}
               </>
             ) : data?.images ? (
               <>
@@ -360,6 +396,28 @@ export default function Chat() {
                     backgroundColor: "#343f46",
                   }}
                 />
+                {data?.side === "right" ? (
+                  <span
+                    onClick={(e) => {
+                      socket.emit("deleteMessage", {
+                        message: data?.message,
+                        room: room,
+                        code: code,
+                        name: name,
+                        index: index,
+                      });
+                    }}
+                  >
+                    {" "}
+                    <MdOutlineAutoDelete
+                      onClick={(e) => {
+                        setCopy("");
+                        setCopyName("");
+                        textRef.current.focus();
+                      }}
+                    />
+                  </span>
+                ) : null}
               </>
             ) : data?.video ? (
               <>
@@ -376,6 +434,29 @@ export default function Chat() {
                 >
                   <source src={`data:video/mp4;base64,${data.video}`}></source>
                 </video>
+                {data?.side === "right" ? (
+                  <span
+                    onClick={(e) => {
+                      socket.emit("deleteMessage", {
+                        message: data?.message,
+                        room: room,
+                        code: code,
+                        name: name,
+                        index: index,
+                      });
+                    }}
+                  >
+                    {" "}
+                    <MdOutlineAutoDelete
+                    style={{color:"white"}}
+                      onClick={(e) => {
+                        setCopy("");
+                        setCopyName("");
+                        textRef.current.focus();
+                      }}
+                    />
+                  </span>
+                ) : null}
               </>
             ) : (
               <Typography variant="body2">
@@ -411,6 +492,7 @@ export default function Chat() {
                     >
                       {data?.message?.slice(0, length)}...
                     </p>
+
                     <p
                       onClick={() => {
                         setLength(data?.message?.length);
@@ -420,12 +502,32 @@ export default function Chat() {
                     >
                       Read more
                     </p>
-                    <p
-                      className="text-sm text-white"
-                      style={{ float: "right", clear: "both" }}
-                    >
-                      {hour}:{minute}
-                    </p>
+
+                    <Box style={{ textAlign: "end" }}>
+                      {data?.side === "right" ? (
+                        <span
+                          onClick={(e) => {
+                            socket.emit("deleteMessage", {
+                              message: data?.message,
+                              room: room,
+                              code: code,
+                              name: name,
+                              index: index,
+                            });
+                          }}
+                        >
+                          {" "}
+                          <MdOutlineAutoDelete
+                           style={{color:"white",float:"right"}}
+                            onClick={(e) => {
+                              setCopy("");
+                              setCopyName("");
+                              textRef.current.focus();
+                            }}
+                          />
+                        </span>
+                      ) : null}
+                    </Box>
                   </Box>
                 ) : data?.message?.startsWith("https://") ||
                   data?.message?.endsWith(".com") ? (
@@ -438,22 +540,59 @@ export default function Chat() {
                     >
                       {data?.message}
                     </a>
-                    <p
-                      className="text-sm text-white"
-                      style={{ float: "right", clear: "both" }}
-                    >
-                      {hour}:{minute}
-                    </p>
+                    {data?.side === "right" ? (
+                      <span
+                        onClick={(e) => {
+                          socket.emit("deleteMessage", {
+                            message: data?.message,
+                            room: room,
+                            code: code,
+                            name: name,
+                            index: index,
+                          });
+                        }}
+                      >
+                        {" "}
+                        <MdOutlineAutoDelete
+                         style={{color:"white",float:"right"}}
+                          onClick={(e) => {
+                            setCopy("");
+                            setCopyName("");
+                            textRef.current.focus();
+                          }}
+                        />
+                      </span>
+                    ) : null}
                   </Box>
                 ) : (
                   <Box>
                     <p className="text-xl text-white">{data?.message}</p>
-                    <p
-                      className="text-sm text-white"
-                      style={{ float: "right", clear: "both" }}
-                    >
-                      {hour}:{minute}
-                    </p>
+                    <Box >
+                      {data?.side === "right" ? (
+                        <span
+                       
+                          onClick={(e) => {
+                            socket.emit("deleteMessage", {
+                              message: data?.message,
+                              room: room,
+                              code: code,
+                              name: name,
+                              index: index,
+                            });
+                          }}
+                        >
+                          {" "}
+                          <MdOutlineAutoDelete
+                           style={{color:"white",float:"right"}}
+                            onClick={(e) => {
+                              setCopy("");
+                              setCopyName("");
+                              textRef.current.focus();
+                            }}
+                          />
+                        </span>
+                      ) : null}
+                    </Box>
                   </Box>
                 )}
               </Typography>
