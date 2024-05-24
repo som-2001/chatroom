@@ -6,6 +6,7 @@ import { IoIosLink } from "react-icons/io";
 import ReactScrollToBottom from "react-scroll-to-bottom";
 import { toast, Toaster } from "sonner";
 import { RxCrossCircled } from "react-icons/rx";
+import { CiMicrophoneOn } from "react-icons/ci";
 import { Navbar } from "@/components/Navbar";
 // https://server-kpva.onrender.com
 
@@ -25,9 +26,13 @@ export default function Chat() {
   const hour = new Date().getHours();
   const minute = new Date().getMinutes();
   const [member, setMember] = useState([]);
+  const [recording, setRecording] = useState(false);
+  const [audioUrl, setAudioUrl] = useState("");
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
+ 
   useEffect(() => {
-    
     const Storedname = localStorage?.getItem("name");
     const StoredRoomname = localStorage?.getItem("room");
     const Storedcode = localStorage?.getItem("code");
@@ -37,26 +42,76 @@ export default function Chat() {
     setCode(localStorage?.getItem("code"));
 
     socket.emit("join_room", { Storedname, StoredRoomname, Storedcode });
-   
-
   }, []);
 
-  useEffect(()=>{
-     socket.emit('total_member',{name,room,code});
-  },[code]);
+  useEffect(() => {
+    socket.emit("total_member", { name, room, code });
+  }, [code]);
 
-  useEffect(()=>{
-    
+  useEffect(() => {
     const total_member = (data) => {
-        console.log(data.members);
-        setMember(data.members);
-      };
+      console.log(data.members);
+      setMember(data.members);
+    };
     socket.on("total_member", total_member);
 
-    return()=>{
-        socket.off("total_member", total_member);
-    }
-  },[]);
+    return () => {
+      socket.off("total_member", total_member);
+    };
+  }, []);
+
+
+  const startRecording = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorderRef.current = new MediaRecorder(stream);
+
+    mediaRecorderRef.current.ondataavailable = (event) => {
+      audioChunksRef.current.push(event.data);
+    };
+
+    mediaRecorderRef.current.onstop = () => {
+      const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" });
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result.split(",")[1];
+        const encodedData = encodeURIComponent(base64String);
+
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            {
+              audio: base64String,
+              type: "audio/wav",
+              side: "right",
+              bgcol: "transparent",
+              name: name,
+              room: room,
+              code: code,
+            },
+          ]);
+          socket.emit("image-file", {
+            Url: encodedData,
+            type: "audio/wav",
+            room,
+            code,
+            name,
+          });
+        };
+       reader.readAsDataURL(audioBlob);
+      audioChunksRef.current = [];
+    };
+
+    mediaRecorderRef.current.start();
+    setRecording(true);
+  };
+
+  const stopRecording = () => {
+    mediaRecorderRef.current.stop();
+    setRecording(false);
+   
+  };
+
 
   useEffect(() => {
     const userJoined = (data) => {
@@ -69,14 +124,13 @@ export default function Chat() {
   }, []);
 
   useEffect(() => {
-
     const userleave = (data) => {
       toast.info(`${data.user} has left the room`);
       setMember(data.members);
     };
-    
+
     socket.on("left_room", userleave);
-   
+
     return () => {
       socket.off("left_room", userleave);
     };
@@ -429,9 +483,7 @@ export default function Chat() {
           placeholder="Type a message..."
           fullWidth
           sx={{
-            "& [class^= .MuiInputBase-root-MuiOutlinedInput-root]": {
-              borderRadius: "30px",
-            },
+            borderRadius: "30px",
           }}
           inputRef={textRef}
           onChange={(e) => setText(e.target.value)}
@@ -458,7 +510,7 @@ export default function Chat() {
           }}
         />
         <button
-          onClick={onsubmit}
+          onClick={recording ? stopRecording : startRecording}
           style={{
             marginLeft: "10px",
             padding: "10px",
@@ -469,7 +521,7 @@ export default function Chat() {
             cursor: "pointer",
           }}
         >
-          <IoSend />
+          {recording ? <IoSend /> : <CiMicrophoneOn />}
         </button>
         <label
           htmlFor="file-input"
