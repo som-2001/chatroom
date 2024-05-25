@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { Toaster, toast } from "sonner";
 
 // Define the validation schema
 const schema = yup.object().shape({
@@ -15,26 +16,36 @@ const schema = yup.object().shape({
     .min(12, "Room Code must be at least 12 characters")
     .matches(/[A-Za-z]/, "Room Code must contain at least one letter")
     .matches(/\d/, "Room Code must contain at least one number")
-    .matches(/[!@#$%^&*(),.?":{}|<>]/, "Room Code must contain at least one special character")
+    .matches(
+      /[!@#$%^&*(),.?":{}|<>]/,
+      "Room Code must contain at least one special character"
+    )
+  
 });
 
 export default function Home() {
   const router = useRouter();
-  const [action, setAction] = useState("");  // State to track the action
+  const [action, setAction] = useState(""); // State to track the action
 
-  const { control, handleSubmit, formState: { errors } } = useForm({
-    resolver: yupResolver(schema)
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    register,
+  } = useForm({
+    resolver: yupResolver(schema),
   });
 
-  const string = '1234567890-+qwertyuiopasdfghjkl;123654789/*`';
+  const string = "1234567890-+qwertyuiopasdfghjkl;123654789/*`";
 
   const generatePasskey = () => {
-    let passkey = '';
+    let passkey = "";
     for (let i = 0; i < 20; i++) {
       passkey += string.charAt(Math.floor(Math.random() * string.length));
     }
     return passkey;
   };
+
 
   const joinRoom = (data) => {
     localStorage.setItem("room", data.room);
@@ -70,6 +81,7 @@ export default function Home() {
       }}
       className="bg-center"
     >
+      <Toaster position="top-center" autoClose={3000} />
       <Box
         sx={{
           padding: "2rem",
@@ -77,7 +89,7 @@ export default function Home() {
           boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
           backgroundColor: "white",
           textAlign: "center",
-          borderRadius: "20px"
+          borderRadius: "20px",
         }}
       >
         <Typography variant="h6" gutterBottom>
@@ -98,7 +110,7 @@ export default function Home() {
                 margin="normal"
                 variant="outlined"
                 error={!!errors.room}
-                helperText={errors.room ? errors.room.message : ''}
+                helperText={errors.room ? errors.room.message : ""}
               />
             )}
           />
@@ -111,12 +123,12 @@ export default function Home() {
                 {...field}
                 type="text"
                 label="User name*"
-                placeholder="Select your User name" 
+                placeholder="Select your User name"
                 fullWidth
                 margin="normal"
                 variant="outlined"
                 error={!!errors.name}
-                helperText={errors.name ? errors.name.message : ''}
+                helperText={errors.name ? errors.name.message : ""}
               />
             )}
           />
@@ -134,11 +146,19 @@ export default function Home() {
                 margin="normal"
                 variant="outlined"
                 error={!!errors.code}
-                helperText={errors.code ? errors.code.message : ''}
+                helperText={errors.code ? errors.code.message : ""}
               />
             )}
           />
-          <Box sx={{ display: 'flex', gap:"15px", marginTop: '1rem',justifyContent:"center" }}>
+        
+          <Box
+            sx={{
+              display: "flex",
+              gap: "15px",
+              marginTop: "1rem",
+              justifyContent: "center",
+            }}
+          >
             <Button
               variant="contained"
               color="primary"

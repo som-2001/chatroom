@@ -11,11 +11,13 @@
 
 .message-container [class^="react-scroll-to-bottom--"]{
   padding: 10px;  
-  height: fit-content;
-  max-height: 620px;
+  height: max-content;
+  max-height: 630px;
   overflow: scroll;
-  padding: 20px;  
+  padding: 10px;  
   background-color: transparent;
-  padding-top: 50px;
+  padding-top: 60px;
+  padding-bottom:40px;
+ 
 
 }
