@@ -29,6 +29,8 @@ export default function Chat() {
   const [recording, setRecording] = useState(false);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const [typingTimeoutRef,setTypingTimeoutRef]=useState('');
+  const [typingUser,setTypingUser]=useState('');
 
   useEffect(() => {
     const Storedname = localStorage?.getItem("name");
@@ -314,6 +316,70 @@ export default function Chat() {
     };
   }, []);
 
+  const handleMessageChange = (e) => {
+    setText(e.target.value);
+       if(text===''){
+        socket.emit('stopTyping',{
+          type:'stopTyping',
+          name:name,
+          room:room,
+          code:code
+        })
+    }
+      if(text!==""){
+      socket.emit('typing',{
+        type:'typing',
+        name:name,
+        room:room,
+        code:code
+      })}
+
+      clearTimeout(typingTimeoutRef);
+      setTypingTimeoutRef(setTimeout(() => {
+        socket.emit('stopTyping', {
+          type: 'stopTyping',
+          name:name,
+          room:room,
+          code:code
+        });
+      }, 1000)); 
+  };
+  
+  useEffect(()=>{
+
+    const Notificatio=(data)=>{
+      switch(data.type){
+       case 'typing':
+        setTypingUser(`${data.name} is typing`)
+         break;
+       default:
+         break;
+        
+      }
+    }
+     socket.on('typing',Notificatio);
+     return()=>{
+       socket.off('typing',Notificatio);
+     }
+   },[]);
+
+   useEffect(()=>{
+
+    const stopTyping=(data)=>{
+      switch(data.type){
+       case 'stopTyping':
+         setTypingUser('Enter your message')
+         break;
+       default:
+         break;
+        
+      }
+    }
+     socket.on('stopTyping',stopTyping);
+     return()=>{
+       socket.off('stopTyping',stopTyping);
+     }
+   },[]);
 
   return (
     <Box
@@ -325,7 +391,7 @@ export default function Chat() {
         width: "100vw",
       }}
     >
-      {<Navbar room={room.toUpperCase()} code={code} member={member} />}
+      {<Navbar room={room} code={code} member={member} />}
 
       <Toaster position="top-center" autoClose={3000} />
       <ReactScrollToBottom className="message-container">
@@ -617,7 +683,7 @@ export default function Chat() {
       >
         <TextField
           id="outlined-basic"
-          label="Enter your message"
+          label={typingUser}
           variant="outlined"
           placeholder={recording ? "Recording...": "Type a message..."}
           fullWidth
@@ -626,7 +692,7 @@ export default function Chat() {
           }}
           inputRef={textRef}
           disabled={recording}
-          onChange={(e) => setText(e.target.value)}
+          onChange={handleMessageChange}
           onKeyDown={(e) => e.key === "Enter" && onsubmit()}
           InputProps={{
             startAdornment: (

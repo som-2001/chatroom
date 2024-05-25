@@ -30,10 +30,10 @@ export const Navbar=(props)=> {
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
       <Typography variant="h6" sx={{ my: 1 }}>
-        {props.room}
+        {props.room.toUpperCase()}
       </Typography>
       <Typography variant="p" sx={{ marginBottom: 2,wordBreak:"break-all" }}>
-        {props.room.toLowerCase()}-{props.code}
+        {props.room}-{props.code}
       </Typography>
       <Divider />
       <List>
@@ -65,7 +65,7 @@ export const Navbar=(props)=> {
             <MenuIcon />
           </IconButton>
           <Typography variant="p" sx={{ my: 2,mx:8 }}>
-        {props.room}
+        {props.room.toUpperCase()}
       </Typography><br/>
      
          
