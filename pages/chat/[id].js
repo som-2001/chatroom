@@ -33,6 +33,11 @@ export default function Chat() {
   const [typingUser, setTypingUser] = useState("");
 
   useEffect(() => {
+
+    if(localStorage?.getItem('game')==='tictactoe'){
+      window.location.reload();
+      localStorage.removeItem('game');
+    }
     const Storedname = localStorage?.getItem("name");
     const StoredRoomname = localStorage?.getItem("room");
     const Storedcode = localStorage?.getItem("code");
@@ -323,7 +328,6 @@ export default function Chat() {
     textRef.current.focus();
   };
 
-  console.log(messages);
 
   useEffect(() => {
     const deleteMessage = (data) => {
@@ -416,7 +420,7 @@ export default function Chat() {
     >
       {<Navbar room={room} code={code} member={member} />}
 
-      <Toaster position="top-center" autoClose={3000} />
+      <Toaster position="top-center" autoClose={1000} />
       <ReactScrollToBottom className="message-container">
         {messages.map((data, index) => (
           <>

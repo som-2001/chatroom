@@ -14,12 +14,17 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import { useRouter } from 'next/router';
+
+import { Toaster, toast } from "sonner";
 
 const drawerWidth = 240;
 
 
 export const Navbar=(props)=> {
-  console.log(props);
+ 
+  
+  const router=useRouter();
   const { window } = props;
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
@@ -45,6 +50,15 @@ export const Navbar=(props)=> {
           </ListItem>
         ))}
       </List>
+      <Divider />
+      <Typography variant='h6'>Gaming section</Typography>
+      <Divider />
+      <Typography variant='h6' style={{padding:"16px"}} onClick={(e)=>{
+      if(props.member.length===2) 
+      router.push('/tictactoe')
+      else
+      return toast.info('Its a 2Player game ')
+      }}>Tic-Tac-Toe</Typography>
     </Box>
   );
 
@@ -78,7 +92,7 @@ export const Navbar=(props)=> {
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
+            keepMounted: true, 
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
